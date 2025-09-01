@@ -1,108 +1,202 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Aashish Chaudhari - Portfolio</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Click the Emoji Game!</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap');
+
+  body {
+    font-family: 'Fredoka One', cursive;
+    text-align: center;
+    background: linear-gradient(135deg, #f6d365, #fda085);
+    color: #333;
+    padding: 20px;
+    margin: 0;
+    overflow-x: hidden;
+  }
+  h1 { 
+    color: #ff3b2e; 
+    text-shadow: 2px 2px #fff;
+    font-size: 2em;
+    margin-bottom: 15px;
+  }
+  #game-area {
+    position: relative;
+    width: 95vw;
+    max-width: 600px;
+    height: 50vh;
+    margin: 15px auto;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #89f7fe, #66a6ff);
+    box-shadow: 0 12px 20px rgba(0,0,0,0.3);
+    overflow: hidden;
+  }
+  .emoji {
+    position: absolute;
+    font-size: 2.5em;
+    cursor: pointer;
+    transition: transform 0.15s ease, top 0.2s ease, left 0.2s ease;
+    user-select: none;
+  }
+  .emoji:active { transform: scale(1.5) rotate(20deg); }
+  #scoreboard, #highscore {
+    font-size: 1.3em;
+    margin-top: 15px;
+    background: rgba(255,255,255,0.8);
+    display: inline-block;
+    padding: 10px 20px;
+    border-radius: 15px;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+    margin-right: 10px;
+  }
+  select {
+    margin-top: 15px;
+    padding: 8px 15px;
+    font-size: 1em;
+    border-radius: 10px;
+    border: none;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    cursor: pointer;
+  }
+  button {
+    margin-top: 15px;
+    padding: 12px 25px;
+    font-size: 1em;
+    cursor: pointer;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #ff758c, #ff7eb3);
+    color: white;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+    transition: transform 0.15s, background 0.2s;
+  }
+  button:hover { background: linear-gradient(135deg, #ff3b2e, #ff6b6b); transform: scale(1.05); }
+  button:disabled { background: #ccc; cursor: not-allowed; }
+  #credit {
+    margin-top: 20px;
+    font-size: 1em;
+    color: #fff;
+    text-shadow: 1px 1px #333;
+  }
+
+  @media (max-width: 400px) {
+    .emoji { font-size: 2em; }
+    h1 { font-size: 1.6em; }
+    #scoreboard, #highscore { font-size: 1.1em; padding: 8px 16px; margin: 5px; }
+    button, select { font-size: 0.9em; padding: 10px 20px; }
+  }
+</style>
 </head>
-<body class="bg-gray-100 text-gray-800">
-  <div class="max-w-5xl mx-auto p-6 space-y-6">
+<body>
+<h1>🎯 Click the Emoji!</h1>
+<div id="game-area"></div>
+<div>
+  <span id="scoreboard">Score: 0</span>
+  <span id="highscore">High Score: 0</span>
+</div>
+<br>
+<select id="difficulty">
+  <option value="easy">Easy</option>
+  <option value="medium" selected>Medium</option>
+  <option value="hard">Hard</option>
+</select>
+<br>
+<button id="start-btn" onclick="startGame()">Start Game</button>
+<div id="credit">Made by Aashish Chaudhari</div>
 
-    <!-- Header -->
-    <header class="text-center">
-      <h1 class="text-4xl font-bold text-indigo-700">Aashish Chaudhari</h1>
-      <p class="text-gray-700">Kathmandu, Nepal | +977 9863520151 | chaudhariaashish18@gmail.com</p>
-      <div class="flex justify-center gap-4 mt-2">
-        <a class="underline text-blue-600" href="www.linkedin.com/in/rejina-phuyal-5872442a7" target="_blank">LinkedIn</a>
-        <a class="underline text-blue-600" href="https://github.com/rejina101" target="_blank">GitHub</a>
-        <a class="underline text-blue-600" href="https://medium.com/@phuyalrejina101" target="_blank">Medium</a>
-      </div>
-    </header>
+<script>
+let score = 0;
+let time = 30;
+let highScore = 0;
+let gameInterval, timerInterval;
+let gameActive = false;
+let spawnSpeed = 700; // milliseconds
+let emojiLife = 1500; // milliseconds
 
-    <!-- Career Objective -->
-    <section class="bg-white p-6 rounded-xl shadow">
-      <h2 class="text-2xl font-semibold mb-2">Career Objective</h2>
-      <p>To build a long-term career in cybersecurity by developing secure, resilient systems and advancing threat prevention strategies. I aim to become a cybersecurity leader focused on protecting critical infrastructure, promoting ethical innovation, and fostering awareness through research and mentorship. With a strong commitment to continuous learning, I strive to stay ahead of evolving threats and contribute to shaping global security standards.</p>
-    </section>
+const gameArea = document.getElementById('game-area');
+const scoreboard = document.getElementById('scoreboard');
+const highscoreDisplay = document.getElementById('highscore');
+const startBtn = document.getElementById('start-btn');
+const difficultySelect = document.getElementById('difficulty');
+const emojis = ['😎','😂','🎉','🔥','🍕','🐱','💎','⚡','🎈','👾','🚀','🍔','🦄','✨'];
 
-    <!-- Education -->
-    <section class="bg-white p-6 rounded-xl shadow">
-      <h2 class="text-2xl font-semibold mb-2">Education</h2>
-      <ul class="list-disc ml-6">
-        <li>BSc. (Hons.) Computer Networking and IT Security - Islington College, London Metropolitan University (2023–Present)</li>
-        <li>School Leaving Certificate (SLC) - SANN International College (2019–2021)</li>
-        <li>Secondary Education Examination (SEE) - Shree Deaurali Higher Secondary School (2018)</li>
-      </ul>
-    </section>
+function randomPosition() {
+  const x = Math.random() * (gameArea.clientWidth - 50);
+  const y = Math.random() * (gameArea.clientHeight - 50);
+  return {x, y};
+}
 
-    <!-- Technical Skills -->
-    <section class="bg-white p-6 rounded-xl shadow">
-      <h2 class="text-2xl font-semibold mb-2">Technical Skills</h2>
-      <div class="flex flex-wrap gap-2">
-        <span class="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-sm">Ethical Hacking</span>
-        <span class="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-sm">CIA Triad</span>
-        <span class="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-sm">Risk Management</span>
-        <span class="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-sm">Access Control</span>
-        <span class="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-sm">TCP/IP</span>
-        <span class="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-sm">VPN</span>
-        <span class="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-sm">DNS</span>
-        <span class="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-sm">Firewalls</span>
-        <span class="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-sm">AWS</span>
-        <span class="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-sm">Virtualization</span>
-        <span class="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-sm">Packet Tracer</span>
-        <span class="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-sm">Kali Linux</span>
-        <span class="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-sm">Encryption</span>
-        <span class="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-sm">Cryptography</span>
-      </div>
-    </section>
+function spawnEmoji() {
+  if(!gameActive) return;
+  const emoji = document.createElement('div');
+  emoji.classList.add('emoji');
+  emoji.innerText = emojis[Math.floor(Math.random() * emojis.length)];
+  const pos = randomPosition();
+  emoji.style.left = pos.x + 'px';
+  emoji.style.top = pos.y + 'px';
+  emoji.onclick = () => {
+    score++;
+    gameArea.removeChild(emoji);
+    updateScore();
+    spawnEmoji();
+  };
+  gameArea.appendChild(emoji);
 
-    <!-- Projects -->
-    <section class="bg-white p-6 rounded-xl shadow">
-      <h2 class="text-2xl font-semibold mb-2">Projects</h2>
-      <ul class="list-disc ml-6 space-y-2">
-        <li><strong>Land Rental Service (Python Project)</strong>: Developed a Python-based land rental management application enabling customers to rent and return land parcels.</li>
-        <li><strong>Teacher Management System with GUI</strong>: Designed a two-phase teacher management system emphasizing object-oriented concepts and GUI for data entry.</li>
-        <li><strong>Online Printer Product Showcase</strong>: Designed a user-friendly website to display printer products and services effectively.</li>
-        <li><strong>Cryptography Research: Bit-Shift XOR Caesar Cipher</strong>: Improved the classic Caesar cipher combining XOR and bitwise shifts.</li>
-        <li><strong>IoT Project - Water Level Monitoring System</strong>: Built IoT solution to track water levels with automated alerts.</li>
-        <li><strong>Password Strength Checker</strong>: Command-line tool evaluating password strength and secure generator.</li>
-        <li><strong>Phishing Awareness Simulation Tool</strong>: Simulated phishing environment to educate users on phishing tactics.</li>
-      </ul>
-    </section>
+  const moveInterval = setInterval(() => {
+    if(!gameArea.contains(emoji)) { clearInterval(moveInterval); return; }
+    const newPos = randomPosition();
+    emoji.style.left = newPos.x + 'px';
+    emoji.style.top = newPos.y + 'px';
+  }, 1000);
 
-    <!-- Certifications -->
-    <section class="bg-white p-6 rounded-xl shadow">
-      <h2 class="text-2xl font-semibold mb-2">Certifications</h2>
-      <ul class="list-disc ml-6">
-        <li>EC-Council – Cybersecurity, Ethical Hacking Essentials, Android Bug Bounty Hunting</li>
-        <li>AWS Academy - Cloud Foundations, Security, Architecting, Operations</li>
-        <li>ISO/IEC 27001:2022 Lead Auditor</li>
-      </ul>
-    </section>
+  setTimeout(() => { 
+    if (gameArea.contains(emoji)) gameArea.removeChild(emoji); 
+    clearInterval(moveInterval);
+  }, emojiLife);
+}
 
-    <!-- Achievements -->
-    <section class="bg-white p-6 rounded-xl shadow">
-      <h2 class="text-2xl font-semibold mb-2">Achievements</h2>
-      <ul class="list-disc ml-6">
-        <li>Recognized as a Class STAR for dedication, curiosity, and teamwork</li>
-      </ul>
-    </section>
+function updateScore() {
+  scoreboard.innerText = `Score: ${score}`;
+  if(score > highScore) {
+    highScore = score;
+    highscoreDisplay.innerText = `High Score: ${highScore}`;
+  }
+}
 
-    <!-- Reference -->
-    <section class="bg-white p-6 rounded-xl shadow">
-      <h2 class="text-2xl font-semibold mb-2">Reference</h2>
-      <p>Mr. Prayagraj Koirala - Lecturer, Security researcher - Islington College, prayagraj.koirala@islingtoncollege.edu.np</p>
-    </section>
+function setDifficulty() {
+  const diff = difficultySelect.value;
+  if(diff === 'easy') { spawnSpeed = 1000; emojiLife = 1800; }
+  else if(diff === 'medium') { spawnSpeed = 700; emojiLife = 1500; }
+  else if(diff === 'hard') { spawnSpeed = 400; emojiLife = 1000; }
+}
 
-    <!-- CV Download -->
-    <section class="bg-white p-6 rounded-xl shadow text-center">
-      <a class="text-indigo-600 underline px-4 py-2 border rounded hover:bg-indigo-100" href="static/cv/cv.pdf" target="_blank">Download CV</a>
-    </section>
+function startGame() {
+  if(gameActive) return;
+  setDifficulty();
+  gameActive = true;
+  startBtn.disabled = true;
+  score = 0;
+  time = 30;
+  updateScore();
+  gameArea.innerHTML = '';
+  spawnEmoji();
+  gameInterval = setInterval(spawnEmoji, spawnSpeed);
+  timerInterval = setInterval(() => {
+    time--;
+    if(time <= 0) endGame();
+  }, 1000);
+}
 
-  </div>
+function endGame() {
+  gameActive = false;
+  clearInterval(gameInterval);
+  clearInterval(timerInterval);
+  alert(`⏰ Time's up! Your score: ${score} 🎉`);
+  gameArea.innerHTML = '';
+  startBtn.disabled = false;
+}
+</script>
 </body>
 </html>
-
-
-
